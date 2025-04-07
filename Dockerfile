@@ -1,18 +1,21 @@
-# Use an official Python image
+# Use an official Python 3.10 slim image
 FROM python:3.10-slim
 
-# Create app directory
-WORKDIR /app
+# Set the working directory
+WORKDIR /usr/src/app
 
-# Copy and install requirements
+# Copy the requirements file and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY app.py .
+# Copy the rest of the app code
+COPY . .
 
-# Expose port 7000 (for local clarity; Azure will also read WEBSITE_PORT)
-EXPOSE 7000
+# Expose the port that Gradio will run on (use the same port as in app.py)
+EXPOSE 7860
 
-# Run the Flask app
+# Set the GRADIO_SERVER_NAME environment variable to ensure Gradio listens on all interfaces
+ENV GRADIO_SERVER_NAME="0.0.0.0"
+
+# Start the Gradio app
 CMD ["python", "app.py"]
