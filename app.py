@@ -1,11 +1,11 @@
-from flask import Flask
+import gradio as gr
+import os
 
-app = Flask(__name__)
+def greet(name):
+    return f"Hello, {name}!"
 
-@app.route("/")
-def hello_world():
-    return "Hello from a simplified Flask app!"
+# Use the port specified by the environment variable WEBSITE_PORT, default to 7860 if not set.
+port = int(os.environ.get("WEBSITE_PORT", 7860))
 
-if __name__ == "__main__":
-    # Important: Bind to '0.0.0.0' and use port 7000
-    app.run(host="0.0.0.0", port=7000)
+iface = gr.Interface(fn=greet, inputs="text", outputs="text")
+iface.launch(server_name="0.0.0.0", server_port=port)
