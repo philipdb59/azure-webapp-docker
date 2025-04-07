@@ -1,0 +1,9 @@
+gradio 
+
+torch 
+
+timm 
+
+sentencepiece 
+
+transformers 
