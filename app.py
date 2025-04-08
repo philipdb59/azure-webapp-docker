@@ -1,44 +1,56 @@
 import gradio as gr
 import os
+import matplotlib.pyplot as plt
+import numpy as np
+import time
 
 # Use the port specified by the environment variable WEBSITE_PORT, default to 7860 if not set.
 port = int(os.environ.get("WEBSITE_PORT", 7860))
 
-# Define a function that processes the user's message and any uploaded files.
-def process_message(message, history):
-    response = "You wrote: " + message["text"]
-    if message.get("files"):
-        response += " and uploaded " + str(len(message["files"])) + " files."
-    return response
+def slow_echo(message, history, file=None):
+    # Stream the response to the user, character by character
+    for i in range(len(message)):
+        time.sleep(0.05)
+        yield "You typed: " + message[: i + 1]
 
-# Create a Gradio chat interface with a multimodal textbox that allows text and file uploads.
-# Added custom CSS to make the chat window have a blue background.
-# Added some prompt ideas in the middle of the chat window.
-demo = gr.ChatInterface(
-    fn=process_message,
+def handle_file(file):
+    # Handle file upload and return a message
+    if file:
+        return f"File {file.name} uploaded successfully."
+    return ""
+
+def generate_plot(message):
+    # Generate a simple plot based on the length of the user's message
+    x = np.linspace(0, 10, 100)
+    y = np.sin(x) * len(message)
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    ax.set_title("Plot based on message length")
+    return fig
+
+# Create the chat interface with additional inputs for file upload
+with gr.Blocks() as demo:
+    chatbot = gr.ChatInterface(
+    slow_echo,
     type="messages",
-    multimodal=True,
-    textbox=gr.MultimodalTextbox(file_count="multiple"),
-    css="""
-    .gradio-chatbot .chatbot-container {
-        background-color: blue;
-        color: white;
-    }
-    .gradio-chatbot .chatbot-container .message.user {
-        background-color: lightblue;
-    }
-    .gradio-chatbot .chatbot-container .message.assistant {
-        background-color: lightsteelblue;
-    }
-    """,
-    examples=[
-        {"text": "What is the weather like today?", "files": []},
-        {"text": "Can you help me with my homework?", "files": []},
-        {"text": "Here's a picture of my cat.", "files": ["cat.jpg"]},
-        {"text": "I need some advice on cooking.", "files": []},
-        {"text": "Check out this video I made.", "files": ["video.mp4"]},
-    ],
-)
+    flagging_mode="manual",
+    flagging_options=["Like", "Spam", "Inappropriate", "Other"],
+    save_history=True,
+    )
 
+    # Create an Accordion to contain the file upload component
+    with gr.Accordion("Upload a File", open=False):
+        file_upload = gr.File(label="Upload a File")
+    plot_output = gr.Plot(label="Plot Output")
 
+    # Define event listeners for the chat interface
+    clear = gr.Button("Clear")
+
+    # Event listener for file upload
+    file_upload.change(handle_file, file_upload, chatbot, queue=False)
+
+    # Event listener for clearing the chat and plot
+    clear.click(lambda: None, None, chatbot, queue=False)
+    clear.click(lambda: None, None, plot_output, queue=False)
+    
 demo.launch(server_name="0.0.0.0", server_port=port)
