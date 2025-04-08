@@ -12,11 +12,33 @@ def process_message(message, history):
     return response
 
 # Create a Gradio chat interface with a multimodal textbox that allows text and file uploads.
+# Added custom CSS to make the chat window have a blue background.
+# Added some prompt ideas in the middle of the chat window.
 demo = gr.ChatInterface(
     fn=process_message,
     type="messages",
     multimodal=True,
     textbox=gr.MultimodalTextbox(file_count="multiple"),
+    css="""
+    .gradio-chatbot .chatbot-container {
+        background-color: blue;
+        color: white;
+    }
+    .gradio-chatbot .chatbot-container .message.user {
+        background-color: lightblue;
+    }
+    .gradio-chatbot .chatbot-container .message.assistant {
+        background-color: lightsteelblue;
+    }
+    """,
+    examples=[
+        {"text": "What is the weather like today?", "files": []},
+        {"text": "Can you help me with my homework?", "files": []},
+        {"text": "Here's a picture of my cat.", "files": ["cat.jpg"]},
+        {"text": "I need some advice on cooking.", "files": []},
+        {"text": "Check out this video I made.", "files": ["video.mp4"]},
+    ],
 )
+
 
 demo.launch(server_name="0.0.0.0", server_port=port)
